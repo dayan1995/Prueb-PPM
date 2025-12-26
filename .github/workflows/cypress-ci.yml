@@ -31,13 +31,6 @@ jobs:
           mkdir -p cypress/reports
           npx cypress run
 
-      # 5️⃣ Generar reporte Mochawesome (si usas mochawesome-merge + html)
-      - name: Merge Mochawesome Reports
-        run: |
-          ls -R cypress/reports
-          npx mochawesome-merge cypress/reports/*.json > mochawesome.json
-          npx mochawesome-report-generator mochawesome.json -o mochawesome-report
-
       # 6️⃣ Subir screenshots como artefacto
       - name: Upload Screenshots
         if: failure()
