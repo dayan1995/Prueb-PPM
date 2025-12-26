@@ -1,0 +1,62 @@
+name: Cypress Tests CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:   # 👈 Esto permite ejecutarlo manualmente desde Actions
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Descargar tu repositorio
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ Instalar Node
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      # 3️⃣ Instalar dependencias
+      - name: Install dependencies
+        run: npm install
+        
+      - name: Run Cypress Tests
+        run: |
+          mkdir -p cypress/reports
+          npx cypress run
+
+      # 5️⃣ Generar reporte Mochawesome (si usas mochawesome-merge + html)
+      - name: Merge Mochawesome Reports
+        run: |
+          ls -R cypress/reports
+          npx mochawesome-merge cypress/reports/*.json > mochawesome.json
+          npx mochawesome-report-generator mochawesome.json -o mochawesome-report
+
+      # 6️⃣ Subir screenshots como artefacto
+      - name: Upload Screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-screenshots
+          path: cypress/screenshots
+
+      # 7️⃣ Subir videos como artefacto
+      - name: Upload Videos
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-videos
+          path: cypress/videos
+
+      # 8️⃣ Subir reporte Mochawesome
+      - name: Upload Mochawesome Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: mochawesome-report
+          path: mochawesome-report
